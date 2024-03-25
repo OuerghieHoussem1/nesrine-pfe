@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-st.set_page_config(page_title="Nesrine PFE", layout="wide")
+st.set_page_config(page_title="BSS-Optimierungstool", layout="wide")
 
-#Creating tabs
-data_tab, result_tab = st.tabs(["Data","Results"])
+#Registerkarten erstellen
+data_tab, result_tab = st.tabs(["Eingangsdaten","Ergebnisse"])
 
 def get_number_inputs(label1="Number 1", label2="Number 2", are_disabled=False):
   
@@ -35,16 +35,16 @@ def get_file_inputs(label1="File one", label2="File two"):
   col1, col2 = st.columns(2)
 
   with col1:
-      file1 = st.file_uploader(label1,type=['csv', 'txt'])
+      file1 = st.file_uploader(label1,type=['csv', 'txt','xlsx'])
 
   with col2:
-      file2 = st.file_uploader(label2,type=['csv', 'txt'])
+      file2 = st.file_uploader(label2,type=['csv', 'txt', 'xlsx'])
 
   return file1, file2
 
 def get_radio_checkboxes(options):
 
-  chosen_option = st.radio("select mode",options, horizontal=True)
+  chosen_option = st.radio("Systemkomponent auswählen",options, horizontal=True)
 
   return chosen_option
 
@@ -56,22 +56,22 @@ def generate_data(num_points=100):
 
 with data_tab:
     col1, col2 = st.container().columns(2)
-    is_batteriespeichers = True
+    is_Batteriespeicher = True
     with col1:
-        uploaded_file1, uploaded_file2 = get_file_inputs("Upload File 1","Upload File 2")
+        uploaded_file1, uploaded_file2 = get_file_inputs("Lastprofildaten herunterladen","PV-Erzeugungsdaten herunterladen")
         from_date,to_date = get_date_inputs("Von","Bis")
-        chosen_option = get_radio_checkboxes(["Batteriespeichers","PV-anlage"])
-        is_batteriespeichers = True if chosen_option == "Batteriespeichers" else False
-        if(is_batteriespeichers):
-            maximale_lack_leistung,maximale_entlade_leistung = get_number_inputs("Maximale lack leistung","maximale entlade leistung", are_disabled=not is_batteriespeichers)
-            SOC_min,SOC_max = get_number_inputs("SOCmin","SOCmax", are_disabled=not is_batteriespeichers)
-            lade_wirduns_grad,entlade_wirdruns_grad=get_number_inputs("ladewirdungsgrad","entladewirdungsgrad", are_disabled=not is_batteriespeichers)
-            energiespezifische_anscchffglaste, betries_und_wastungsten = get_number_inputs("energiespezifische_anscchffglaste","betries_und_wastungsten")
-            ensatzdostn, maximale_netzbezugleistung = get_number_inputs("ensatzdostn","maximale_netzbezugleistung")
-            strompreis = st.number_input("strompreis", disabled=not is_batteriespeichers)
-        if(not is_batteriespeichers):
-            maximale_enspeisengreze = st.number_input("maximale_enspeisengreze", disabled=is_batteriespeichers)
-            eimspeise_vergutung = st.number_input("eimspeise_vergutung", disabled=is_batteriespeichers)
+        chosen_option = get_radio_checkboxes(["Batteriespeicher","PV-Anlage","Netzbetreiber"])
+        is_Batteriespeicher = True if chosen_option == "Batteriespeicher" else False
+        if(is_Batteriespeicher):
+            Maximale_Ladeleistung,Maximale_Entladeleistung = get_number_inputs("Maximale Ladeleistung [kW]","Maximale Entladeleistung [kW]", are_disabled=not is_Batteriespeicher)
+            SOC_min,SOC_max = get_number_inputs("SOCmin","SOCmax", are_disabled=not is_Batteriespeicher)
+            Ladewirkunsgrad,Entladewirkunsgrad=get_number_inputs("Ladewirkungsgrad [%]","Entladewirkungsgrad[%]", are_disabled=not is_Batteriespeicher)
+            Energiespezifische_Anschaffungskosten, Betriebs_und_Wartungskosten = get_number_inputs("Energiespezifische Anschaffungskosten [€/kWh]","Betriebs- und Wartungskosten [€]")
+            Ersatzkosten = get_number_inputs("Ersatzkosten[€]")
+            Strompreis = st.number_input("Strompreis", disabled=not is_Batteriespeicher)
+        if(not is_Batteriespeicher):
+            Maximale_Einspeisegrenze = st.number_input("Maximale_Einspeisegrenze [kW]", disabled=is_Batteriespeicher)
+            Einspeisevergütung = st.number_input("Einspeisevergütung [€/kWh]", disabled=is_Batteriespeicher)
     with col2:
         # plot_width = st.slider('Plot Width (inches)', min_value=5.0, max_value=15.0, value=10.0)
         # plot_height = st.slider('Plot Height (inches)', min_value=3.0, max_value=8.0, value=5.0)
@@ -80,12 +80,12 @@ with data_tab:
 
         x, y1, y2 = generate_data()
 
-        ax.plot(x, y1, label='Squared Values', color='blue')
-        ax.plot(x, y2, label='Linear Values', color='red')
+        ax.plot(x, y1, label='Verbraucherlastprofil', color='blue')
+        ax.plot(x, y2, label='PV-Erzeugungsprofil', color='red')
 
-        ax.set_xlabel('X-axis')
-        ax.set_ylabel('Y-axis')
-        fig.suptitle('Comparison of Squared vs. Linear Values')
+        ax.set_xlabel('Zeit')
+        ax.set_ylabel('Leistung [kW]')
+        fig.suptitle('Darstellung der Eingangsdaten')
 
         ax.legend()
 
@@ -93,37 +93,37 @@ with data_tab:
 
 
 
-        st.write("### Simulation sergebmisse")
-        data = {"Beschrlibung":
-                ["Jahrenhastlast",
-                 "Jahresenrgereverbrand",
-                 "Batteriedapazitat",
-                 "Eigenverbranchentei",
-                 "eigenverbrauchsenteil mit BSS",
-                 "Netzeinspeusung",
-                 "Gescente PV-erzeugung",
+        st.write("### Simulationsergebnisse")
+        data = {"Beschreibung":
+                ["Jahreshöchstlast",
+                 "Jahresenergieverbrauch",
+                 "Batteriespeicherkapazität",
+                 "Eigenverbrauchsanteil ohne BSS",
+                 "Eigenverbrauchsanteil mit BSS",
+                 "Jährliche PV-Erzeugung",
+                 "Gesamte Netzeinspeisung",
                  "Bezug dus PVA",
                  "Bezug aus BSS",
                  "Bezug aus Netz"
                  ],
                  "Werk":[
-                    "KW",
-                    "Kwh/a",
-                    "dwh",
+                    "kW",
+                    "kWh/a",
+                    "kWh",
                     "%",
                     "%",
-                    "dwh",
-                    "dwh",
-                    "kwh",
-                    "kwh",
-                    "kwh",
+                    "kWh/a",
+                    "kWh",
+                    "kWh",
+                    "kWh",
+                    "kWh",
                  ]
             }
-        data_frame = pd.DataFrame(data, columns=("Beschrlibung","Werk"))
+        data_frame = pd.DataFrame(data, columns=("Beschreibung","Wert"))
         st.table(data_frame)
 
 
 with result_tab:
     st.write("## Hello from results!")
 
-# st.success("Nesrine's app started")
+# st.success("BSS-Optimierungstool startet")
